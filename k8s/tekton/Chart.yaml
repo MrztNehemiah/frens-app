@@ -1,0 +1,4 @@
+apiVersion: v2
+name: my-tekton
+description: A simple Helm chart for Tekton secrets
+version: 0.1.0

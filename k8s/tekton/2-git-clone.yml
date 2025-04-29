@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+spec:
+  workspaces:
+    - name: output
+      description: workspace where the repo is cloned
+    - name: ssh-directry
+      description: workspace where ssh credntials is stored
+  params:
+    - name: url
+      type: string
+      description: The git URL to clone from
+  steps:
+    - name: prepare
+      image: alpine
+      script: |
+
+        # Ensure directory exists and check its content
+        mkdir -p $(workspaces.output.path)
+        echo "Checking directory contents before cleanup:"
+        ls -la $(workspaces.output.path)
+
+        # Ensure directory exists and check it's content
+        rm -rf $(workspaces.output.path)/.[!.]* $(workspaces.output.path)/*
+        echo "Checking directory contents after cleanup:"
+        ls -la $(workspaces.output.path)
+
+        # Final check and conditional exit
+          if [ "$(ls -A $(workspaces.output.path))" ]; then
+            echo "Directory is not empty after cleanup, exiting with error"
+            exit 1
+          else
+            echo "Directory is clean, proceeding with clone"
+          fi
+    
+    
+    - name: clone
+      image: alpine/git
+      script: |
+
+        set -e
+
+        apk add --no-cache openssh-client
+        mkdir -p /tmp/.ssh
+        cp $(workspaces.ssh-directory.path)/* /tmp/.ssh/
+        chmod 600 /tmp/.ssh/id_ed25519
+        export GIT_SSH_COMMAND="ssh -i /tmp/.ssh/id_ed25519 -o UserKnownHostsFile=/tmp/.ssh/known_hosts -o StrictHostKeyChecking=no"
+       
+        git clone $(params.url) $(workspaces.output.path)
+        cd $(workspaces.output.path)
+        ls

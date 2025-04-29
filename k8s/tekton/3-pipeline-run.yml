@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: pipeline-run
+spec:
+  pipelineRef:
+    name: frens-app-pipeline
+  params:
+    - name: git-url
+      value: git@github.com:MrztNehemiah/frens-app.git
+    - name: image-url
+      value: nehecodes/frens-app:1.0
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        metadata:
+          name: my-pvc
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+

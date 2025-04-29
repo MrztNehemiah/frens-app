@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: fren-app-pipeline
+spec:
+  description: |
+    This pipeline clones a git repo, builds the image and pushes it to dockerhub
+  params:
+    - name: git-url
+      type: string
+      description: The git repo to clone
+    - name: image-url
+      type: string
+      description: The docker hub url to push image to.
+  workspaces:
+    - name: shared-workspace
+    - name: git-credentials
+    - name: docker-credentials
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.git-url)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+        - name: ssh-directory
+          workspace: git-credentials
+    - name: build-and-push
+      runAfter: [git-clone]
+      taskRef:
+        name: build-and-publish-image
+      params:
+        - name: image-url
+          value: $(params.image-url)
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: docker-credentials
+          workspace: docker-credentials
