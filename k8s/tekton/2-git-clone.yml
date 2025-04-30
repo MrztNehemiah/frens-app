@@ -6,7 +6,7 @@ spec:
   workspaces:
     - name: output
       description: workspace where the repo is cloned
-    - name: ssh-directry
+    - name: ssh-directory
       description: workspace where ssh credntials is stored
   params:
     - name: url
@@ -41,6 +41,12 @@ spec:
       script: |
 
         set -e
+        
+        # Validate ssh key
+        if [ ! -f "$(workspaces.ssh-directory.path)/id_ed25519" ]; then
+          echo "ERROR: ssh key not found!"
+          exit 1
+        fi
 
         apk add --no-cache openssh-client
         mkdir -p /tmp/.ssh

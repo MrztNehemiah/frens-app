@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frens-app
-        image: nehecodes/frens-app:latest
+        image: nehecodes/frens-app:1.0
         ports:
         - containerPort: 3000
         env:

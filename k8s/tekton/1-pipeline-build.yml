@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: fren-app-pipeline
+  name: frens-app-pipeline
 spec:
   description: |
     This pipeline clones a git repo, builds the image and pushes it to dockerhub

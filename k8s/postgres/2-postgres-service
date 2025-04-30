@@ -3,11 +3,11 @@ kind: Service
 metadata:
   name: postgres-service
   labels:
-    app: nginx
+    app: frens-postgres
 spec:
-  ports:
-  - port: 80
-    name: web
   clusterIP: None
+  ports:
+  - port: 5432
+    name: postgres
   selector:
-    app: nginx
+    app: frens-postgres

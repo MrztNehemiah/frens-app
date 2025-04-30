@@ -4,7 +4,7 @@ metadata:
   name: pipeline-run
 spec:
   pipelineRef:
-    name: frens-app-pipeline
+    name: fren-app-pipeline
   params:
     - name: git-url
       value: git@github.com:MrztNehemiah/frens-app.git
@@ -13,11 +13,14 @@ spec:
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:
-        metadata:
-          name: my-pvc
         spec:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
               storage: 1Gi
-
+    - name: git-credentials
+      secret:
+        secretName: git-credentials
+    - name: docker-credentials
+      secret:
+        secretName: docker-credentials
