@@ -1,0 +1,33 @@
+#!/bin/bash
+echo "Executing command in 3, 2, 1..."
+
+# Define namespace
+NAMESPACE=frensapp
+
+# Delete existing namespace
+minikube kubectl delete namespace $NAMESPACE --ignore-not-found
+echo "Namespace '$NAMESPACE' deleted successfully"
+
+# Recreate namespace
+minikube kubectl create namespace $NAMESPACE
+echo "Created namespace '$NAMESPACE'"
+
+# Install Helm chart
+helm install my-auth k8s/tekton -f k8s/tekton/values.yml -n $NAMESPACE
+echo "Applied Helm chart for git credentials"
+
+# Apply Docker credentials
+minikube kubectl apply -f k8s/tekton/6-docker-secret.yml -n $NAMESPACE
+echo "Applied Docker secret"
+
+# Apply Tekton service account (uses the above secret)
+minikube kubectl apply -f k8s/tekton/7-service-account.yml -n $NAMESPACE
+echo "Applied Tekton service account"
+
+# Apply pipeline resources
+minikube kubectl apply -f k8s/tekton/1-pipeline-build.yml -n $NAMESPACE
+minikube kubectl apply -f k8s/tekton/2-git-clone.yml -n $NAMESPACE
+minikube kubectl apply -f k8s/tekton/4-build-and-publish-docker-image.yml -n $NAMESPACE
+minikube kubectl apply -f k8s/tekton/3-pipeline-run.yml -n $NAMESPACE
+echo "Applied all Tekton pipeline components"
+

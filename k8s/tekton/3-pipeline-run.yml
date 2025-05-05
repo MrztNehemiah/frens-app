@@ -2,9 +2,12 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   name: pipeline-run
+  namespace: frensapp
 spec:
   pipelineRef:
-    name: fren-app-pipeline
+    name: frens-app-pipeline
+  taskRunTemplate:
+    serviceAccountName: frens-service-account
   params:
     - name: git-url
       value: git@github.com:MrztNehemiah/frens-app.git

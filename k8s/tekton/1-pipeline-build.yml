@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: frens-app-pipeline
+  namespace: frensapp
 spec:
   description: |
     This pipeline clones a git repo, builds the image and pushes it to dockerhub
@@ -28,7 +29,7 @@ spec:
           workspace: shared-workspace
         - name: ssh-directory
           workspace: git-credentials
-    - name: build-and-push
+    - name: build-and-publish-image
       runAfter: [git-clone]
       taskRef:
         name: build-and-publish-image

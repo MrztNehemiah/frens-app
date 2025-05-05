@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: build-and-publish-image
+  namespace: frensapp
 spec:
   params:
     - name: image-url
@@ -21,4 +22,11 @@ spec:
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
-    
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: docker-credentials
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+
