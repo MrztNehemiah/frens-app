@@ -1,0 +1,29 @@
+name: frens-app
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/frens_app_development
+      - RAILS_ENV=development
+    volumes:
+      - .:/frens-app
+      - ./tmp/pids:/frens-app/tmp/pids
+    restart: unless-stopped
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=frens_app_development
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+volumes:
+  postgres_data:

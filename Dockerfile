@@ -7,7 +7,7 @@ RUN mkdir frens-app
 WORKDIR /frens-app
 
 # Install system dependencies
-RUN apt-get update -qq && apt-get install -y \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     nodejs \
@@ -16,7 +16,10 @@ RUN apt-get update -qq && apt-get install -y \
     git \
     curl \
     libvips \
-    yarn
+    libyaml-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g yarn
 
 # Install Rails
 RUN gem install rails
@@ -30,11 +33,11 @@ RUN bundle install
 # Copy the rest of the application code
 COPY . /frens-app
 
-# Precompile assets
-RUN rails assets:precompile
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
 
 # Expose port 3000
 EXPOSE 3000
 
 # Start the Rails server
-CMD ["rails", "server", "-b", "0.0.0.0"]
+ENTRYPOINT ["entrypoint.sh"]

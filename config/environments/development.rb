@@ -11,6 +11,9 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
+  
+  # Allow ingress hostname
+  config.hosts << "frens.local"
 
   # Enable server timing.
   config.server_timing = true
