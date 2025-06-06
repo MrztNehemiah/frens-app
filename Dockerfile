@@ -1,43 +1,53 @@
-FROM ruby:3.4-slim
+# ---- Build Stage ----
+FROM ruby:3.4-alpine AS builder
 
-# Create the working directory
-RUN mkdir frens-app
-
-# Set the working directory 
-WORKDIR /frens-app
-
-# Install system dependencies
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
+# Install build dependencies
+RUN apk add --no-cache \
+    build-base \
+    postgresql-dev \
     nodejs \
     npm \
-    postgresql-client \
     git \
     curl \
-    libvips \
-    libyaml-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/* \
-    && npm install -g yarn
+    vips-dev \
+    yaml-dev \
+    pkgconfig
 
-# Install Rails
-RUN gem install rails
+WORKDIR /frens-app
 
-# Copy Gemfile and Gemfile.lock
+# Install Yarn (via npm)
+RUN npm install -g yarn
+
+# Copy Gemfiles and install gems
 COPY Gemfile Gemfile.lock ./
+RUN gem install bundler && bundle config set deployment 'true' && bundle install --without development test
 
-# Install gems
-RUN bundle install
+# Copy the rest of the app
+COPY . .
 
-# Copy the rest of the application code
-COPY . /frens-app
+# Precompile assets (if using Rails assets)
+RUN bundle exec rake assets:precompile
 
+# ---- Production Stage ----
+FROM ruby:3.4-alpine
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    postgresql-libs \
+    nodejs \
+    vips \
+    yaml
+
+WORKDIR /frens-app
+
+# Copy only the necessary files from build stage
+COPY --from=builder /frens-app ./
+COPY --from=builder /usr/local/bundle /usr/local/bundle
+
+# Copy entrypoint
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-# Expose port 3000
 EXPOSE 3000
 
-# Start the Rails server
 ENTRYPOINT ["entrypoint.sh"]
