@@ -15,39 +15,48 @@ RUN apk add --no-cache \
 
 WORKDIR /frens-app
 
-# Install Yarn (via npm)
-RUN npm install -g yarn
+# Install specific bundler version and yarn
+RUN gem install bundler:2.6.8 && npm install -g yarn
 
-# Copy Gemfiles and install gems
-COPY Gemfile Gemfile.lock ./
-RUN gem install bundler && bundle config set deployment 'true' && bundle install --without development test
+# Copy dependency files first (better caching)
+COPY Gemfile Gemfile.lock package.json yarn.lock* ./
 
-# Copy the rest of the app
+# Install gems and JS dependencies
+RUN bundle config set --local without 'development test' && \
+    bundle install && \
+    yarn install --frozen-lockfile
+
+# Copy source code
 COPY . .
 
-# Precompile assets (if using Rails assets)
+# Precompile assets
 RUN bundle exec rake assets:precompile
 
 # ---- Production Stage ----
 FROM ruby:3.4-alpine
 
-# Install runtime dependencies only
+# Install runtime dependencies
 RUN apk add --no-cache \
     postgresql-libs \
     nodejs \
     vips \
-    yaml
+    yaml \
+    tzdata
 
 WORKDIR /frens-app
 
-# Copy only the necessary files from build stage
-COPY --from=builder /frens-app ./
+# Create non-root user
+RUN addgroup -g 1000 -S appgroup && \
+    adduser -u 1000 -S appuser -G appgroup
+
+# Copy application and bundler gems
+COPY --from=builder --chown=appuser:appgroup /frens-app ./
 COPY --from=builder /usr/local/bundle /usr/local/bundle
 
-# Copy entrypoint
-COPY entrypoint.sh /usr/bin/entrypoint.sh
+# Copy and setup entrypoint
+COPY --chown=appuser:appgroup entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
+USER appuser
 EXPOSE 3000
-
 ENTRYPOINT ["entrypoint.sh"]
