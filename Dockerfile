@@ -29,7 +29,9 @@ RUN bundle config set --local without 'development test' && \
 # Copy source code
 COPY . .
 
-# Precompile assets
+# Precompile assets with debug disabled
+ENV RAILS_ENV=production
+ENV DISABLE_DEBUG=1
 RUN bundle exec rake assets:precompile
 
 # ---- Production Stage ----
