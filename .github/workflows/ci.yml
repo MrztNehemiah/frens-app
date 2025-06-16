@@ -19,6 +19,13 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Unfreeze Gemfile.lock
+        run: bundle config set frozen false
+
+      - name: Install dependencies
+        run: bundle install
+
+
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
