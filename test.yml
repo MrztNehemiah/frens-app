@@ -1,0 +1,29 @@
+name: node-app
+version: 1.0.0
+description: A sample application configuration
+author: Nehemiah
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - DB_URL=mogodb://mongodb:mongodb@db:27017/node_app_development
+    volumes:
+      - .:/node_app
+    depends_on: mogodb
+    restarts: unless-stopped
+  mongodb:
+    image: mongodb/mongodb-community-server
+    environment:
+      MONGO_USER=mongodb
+      MONGO_PASSWORD=mongodb
+      MONGO_DB=node_app_development
+    volumes:
+      mogodb_data:/mogodb/data
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
